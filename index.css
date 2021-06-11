@@ -8,25 +8,42 @@ hr{
     background-color: rgba(0, 145, 0, 0.8);
 }
 body{
-    width:795px
+    width:795px;
+    background-color: #ffffff;
 }
+
 #div_head{
-    width: 1552px;
-    
+    width: 795px;
+    height: auto;    
+    padding-bottom: 5px;
+    padding-left: 25%;
 }
 
 #div_nav{
-    width: 1252px;
-    height: 100px;
-    float: left;
-    /* position: absolute; */
-    overflow: hidden;}
+    padding-top: 5px;
+    padding-bottom:5px;
+    width: 795;
+	overflow: hidden;
+    
+}
 #div_cen{
     width: 795px ;
     height :879px;
     background-image: url(bookshelf.png);
     float:left;
     overflow:hidden;
+}
+#div_cen2{
+        width: 795px ;
+        height :879px;
+        float:left;
+        overflow:hidden;
+}
+#div_line{
+    height: 50px;
+}
+#mimg{
+    width: 30px;
 }
 .table{
     width: 93%;
@@ -35,12 +52,41 @@ body{
     padding-left: 3.2%;
     padding-right: 5%;
     display: flex;
-
 }
-
 #imgid{
     border-radius: 10px 10px 10px 10px;
     width:80%;
+}
+.navli{
+    float: left;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+ul li{
+    list-style: none;
+    float:left;
+    padding-right: 40px;
+    font-size: 20pt;
+    font-weight: bold;
+
 
 }
+li :hover{
+    color:red;
+}
+a{
+    text-decoration: none;
+    color: black;
+}
+
+p{
+    padding-top: -60px;
+    position: absolute;
+    font-size: 2em;
+    display: flex;
+}
+   
+   
+   
+
 
