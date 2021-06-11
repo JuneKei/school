@@ -22,7 +22,7 @@ body{
     /* position: absolute; */
     overflow: hidden;}
 #div_cen{
-    width: 100% ;
+    width: 795px ;
     height :879px;
     background-image: url(bookshelf.png);
     float:left;
