@@ -1,0 +1,46 @@
+*{
+    margin: 0 auto;
+    padding: 0 auto;
+}
+hr{
+    height: 3px;
+    width: 795px;
+    background-color: rgba(0, 145, 0, 0.8);
+}
+body{
+    width:795px
+}
+#div_head{
+    width: 1552px;
+    
+}
+
+#div_nav{
+    width: 1252px;
+    height: 100px;
+    float: left;
+    /* position: absolute; */
+    overflow: hidden;}
+#div_cen{
+    width: 100% ;
+    height :879px;
+    background-image: url(img/index.png);
+    float:left;
+    overflow:hidden;
+}
+.table{
+    width: 93%;
+    height: 24.8%;
+    padding-top: 5.5%;
+    padding-left: 3.2%;
+    padding-right: 5%;
+    display: flex;
+
+}
+
+#imgid{
+    border-radius: 10px 10px 10px 10px;
+    width:80%;
+
+}
+
