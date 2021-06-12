@@ -10,19 +10,19 @@
         
     </script>
 </head>
-<body>
+<body style="background-color: rgb(190, 190, 190);">
     <!-- 로고 -->
-    <div id="div_head">
+    <div id="div_head" style="box-shadow: 1px 1px 1px 1px gray;">
         <img src="logo.png" alt="">
     </div>
     
     <!-- 메뉴바 라인 -->
-    <div id="div_nav">
+    <div id="div_nav" style="box-shadow: 1px 1px 1px 1px gray;">
         <ul class="navli">
-            <li><a href="index.html"><img src="menuF.png" id="mimg">오늘의 책</img></li>
-            <li><a href="community.html"><img src="menuC.png" id="mimg">커뮤니티</a></li>
-            <li><a href="newbook.html"><img src="menuF.png" id="mimg">이달의 신간</a></li>
-            <li><a href="my.html"><img src="menuT.png" id="mimg">MY</a></li>
+            <li><a href="index.html"><img src="menuf.jpg" id="mimg">오늘의 책</img></li>
+            <li><a href="community.html"><img src="menuc.jpg" id="mimg">커뮤니티</a></li>
+            <li><a href="newbook.html"><img src="menuf.jpg" id="mimg">이달의 신간</a></li>
+            <li><a href="my.html"><img src="menut.jpg" id="mimg">MY</a></li>
         </ul>
     </div>
     
@@ -32,9 +32,33 @@
     </div>
 
     <!-- 센터에 책 이미지 -->
-    <div id="div_cen2" >
-    로그인창
-    </div>
+    <div id="div_cen4" style="box-shadow: 1px 1px 1.5px 1.5px gray;" >
+        <div class="login"><b>내 서재</b></div>
+        <form method="GET" id="authForm" action="my.html">
+            <div class="loginwindow">
+                <label for="loginId"><b>아이디　</b></label>
+                <input type="text" id="loginId" name="loginId" 
+                 placeholder="ID" required autofocus style="font-size: 1em;" >
+            </div>
+            
+            <div class="loginwindow">
+                <label for="loginPw"><b>비밀번호</b></label>
+                <input type="password" id="loginPw" name="password" class="loginfont"
+                required autofocus placeholder="Password" style="font-size: 1em;">
+            </div>
+            <div class="loginwindow">
+                <button type="submit" class="btnclass"><b>로그인</b></button>
+                <b><a class="newaccount" href="newaccount.html">회원가입</a></b>
+
+            </div>
+            <div class="loginwindow">
+            </div>
+            <div class="loginwindow">
+              <input type="checkbox" id="keepLogin" name="keepLogin">
+              <label for="keepLogin"><span>로그인 상태 유지</span></label>
+            </div>
+          </form>
+        </form>
 
     
     
