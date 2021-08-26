@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SuitUpDAO">
+
+	<resultMap type="HashMap" id="CartMap">
+		<id column="PRO_NUM" property="proNum"/>
+		<id column="PRO_NAME" property="proName"/>
+		<id column="MEM_ID" property="memId"/>
+		<id column="DTPRO_SIZE" property="dtproSize"/>
+		<id column="DTPRO_COLOR" property="dtproColor"/>
+		<id column="CART_COUNT" property="cartCount"/>
+		<id column="PRO_PRICE" property="proPrice"/>
+		<id column="CART_NUM" property="cartNum"/>
+		<id column="CATE_NUM" property="cateNum"/>
+		<id column="CATE_DTNUM" property="cateDtnum"/>
+		<id column="PRO_IMAGE" property="proImage"/>
+	</resultMap>
+	
+	<!-- 이미지 포함한 카트 리스트 불러오기 -->
+	<select id="getCartList" resultMap="CartMap" parameterType="SuitUpCartVO">
+		SELECT SU_CART.*, SU_PRO.PRO_IMAGE
+		FROM SU_CART JOIN SU_PRO
+		ON SU_CART.PRO_NUM = SU_PRO.PRO_NUM
+		WHERE MEM_ID=#{memId}
+	</select>
+	
+	<!-- 카트 리스트 불러오기 -->
+	<select id="getCartList2" resultType="SuitUpCartVO" parameterType="SuitUpCartVO">
+		SELECT * FROM SU_CART WHERE MEM_ID=#{memId}
+	</select>
+	
+	<!-- 카트 하나 불러오기 -->
+	<select id="getCartOne" resultType="SuitUpCartVO" parameterType="SuitUpCartVO">
+		SELECT * FROM SU_CART WHERE CART_NUM=#{cartNum}
+	</select>
+	
+	<!-- 상품 번호로 상품 재고 가져오기 -->
+	<select id="getProCount" resultType="Integer" parameterType="Integer">
+		SELECT DTPRO_COUNT FROM SU_PRO WHERE PRO_NUM = #{proNum};
+	</select>
+	
+	<!-- 주문하기 -->
+	<insert id="insertOrder" parameterType="SuitUpOrderVO">
+	
+		INSERT INTO SU_ORDER VALUES(
+		SU_ORDER_NUM_SEQ.NEXTVAL, #{memId}, ${proNum}, #{dtproSize},#{dtproColor},${orderCount},'주문완료',SYSDATE,
+		#{orderAddress}, #{orderReceiver}, #{orderPhone}, #{orderMemo}, ${proPrice}, #{proName}, #{cateNum}, #{cateDtnum}
+		)
+
+	</insert>
+
+	<!-- 카트 전부 삭제 -->
+	<delete id="deleteCartList" parameterType="SuitUpCartVO">
+		DELETE FROM SU_CART WHERE MEM_ID = #{memId}
+	</delete>
+	
+	<!-- 카트 삭제 -->
+	<delete id="deleteCart" parameterType="String">
+		DELETE FROM SU_CART WHERE CART_NUM = #{cartNum}
+	</delete>
+	
+	<!-- 주문 목록 불러오기 -->
+	<select id="orderList" parameterType="SuitUpOrderVO" resultType="SuitUpOrderVO">
+		SELECT * FROM SU_ORDER WHERE MEM_ID = #{memId} ORDER BY ORDER_NUM DESC
+	</select>
+	
+	<!-- 주문 내역 건수 불러오기 -->
+	<select id="orderListCount" parameterType="String" resultType="Integer">
+	SELECT COUNT(*) FROM SU_ORDER WHERE MEM_ID = #{id}
+	</select>
+	
+	<!-- 회원 가입 -->
+	<insert parameterType="SuitUpCustomerVO" id="userInsert">
+	INSERT INTO SU_MEM(MEM_ID,mem_admin,MEM_PASS,MEM_NAME,MEM_ADDR,MEM_PHONE)
+	values(#{memId},0,#{memPass},#{memName},#{memAddr},#{memPhone})
+	</insert>
+	
+	<!-- 아이디 중복 체크 -->
+	<select id="idCheck" resultType="SuitUpCustomerVO" parameterType="SuitUpCustomerVO">
+		SELECT * FROM SU_MEM WHERE MEM_ID = #{memId} 
+	</select>
+	
+	<!-- 회원 정보 불러오기 -->
+	<select id="getUserInfo" resultType="SuitUpCustomerVO" parameterType="SuitUpCustomerVO">
+		SELECT * FROM SU_MEM WHERE MEM_ID = #{memId}
+	</select>
+	
+	<!-- 카테고리 목록 불러오기 -->
+	<select id="getCategoryList" resultType="SuitUpCategoryVO">
+		SELECT * FROM SU_CATE
+	</select>
+	
+	<!-- 상품목록 불러오기 -->
+	<select id="getProductList" parameterType="SuitUpProductVO" resultType="SuitUpProductVO">
+		SELECT * FROM SU_PRO
+		<where>
+			<if test="cateNum != null">AND CATE_NUM = #{cateNum}</if>
+			<!-- <if test="cateDtnum != null">AND CATE_DTNUM = ${cateDtnum}</if> -->
+		</where>
+	</select>
+	
+	<!-- 인기상품 불러오기 -->
+	<select id="getPopularList" parameterType="SuitUpProductVO" resultType="SuitUpProductVO">
+	<![CDATA[
+		SELECT SU_PRO.*
+		FROM SU_PRO, (SELECT PRO_NUM
+			FROM(SELECT ROWNUM, PRO_NUM 
+				FROM(SELECT ROW_NUMBER() OVER(ORDER BY SUM(ORDER_COUNT) DESC) AS NUM, PRO_NUM, SUM(ORDER_COUNT)AS SUM
+					FROM SU_ORDER
+					WHERE CATE_NUM = #{cateNum}
+					GROUP BY PRO_NUM ORDER BY SUM DESC) WHERE ROWNUM <= 10)) A
+		WHERE SU_PRO.PRO_NUM = A.PRO_NUM
+			]]>
+	</select>
+	
+	<!-- 신제품 불러오기 -->
+	<select id="getNewList" resultType="SuitUpProductVO">
+	<![CDATA[
+		SELECT SU_PRO.*
+		FROM SU_PRO, (SELECT ROWNUM, SU_PRO.* FROM SU_PRO WHERE ROWNUM <= 5 ORDER BY PRO_NUM DESC) A
+		WHERE A.PRO_NUM = SU_PRO.PRO_NUM
+	]]>
+	</select>
+	
+	<!-- 관리자 상품 등록하기 -->
+    <insert id="Productinsert"  parameterType="SuitUpProductVO" >
+
+           INSERT INTO SU_PRO 
+           VALUES 
+           ( SEQ_SU_PRO.NEXTVAL,#{proName},#{proPrice},#{cateNum},#{cateDtnum},#{dtproCount},#{proImage},#{proDetail})
+
+    </insert>
+
+   <!--  관리자 상품목록 불러오기 -->
+	<select id="getAdminList" parameterType="SuitUpProductVO" resultType="SuitUpProductVO">
+		SELECT * FROM SU_PRO
+	</select>
+	
+	<!--  관리자 상품목록 수정하기 -->
+	<update id="productModify" parameterType="SuitUpProductVO">
+	UPDATE SU_PRO SET PRO_NAME = #{proName} , PRO_PRICE = #{proPrice},
+	CATE_NUM = #{cateNum} , CATE_DTNUM = #{cateDtnum}, DTPRO_COUNT = #{dtproCount}
+	<if test="proImage.length() gt 8">, PRO_IMAGE = #{proImage}</if>
+	<if test="proDetail.length() gt 8">, PRO_DETAIL = #{proDetail}</if>
+	WHERE PRO_NUM = #{proNum}
+	</update>
+	
+	<!--  관리자 상품목록 삭제하기 -->
+	<delete id="productDelete">
+	       delete
+	             SU_PRO
+	       WHERE PRO_NUM = #{proNum}	
+	</delete>	
+	
+	<!-- 회원정보 수정 -->
+	<update parameterType="SuitUpCustomerVO" id="memberModify">
+	UPDATE su_mem SET mem_name = #{memName},mem_addr=#{memAddr},mem_phone=#{memPhone} WHERE mem_id = #{memId}
+	</update>
+	
+	<!-- 상품 상세 페이지 불러오기 -->
+	<select id="getProductDetails" parameterType="SuitUpProductVO" resultType="SuitUpProductVO">
+		SELECT * FROM SU_PRO WHERE PRO_NUM=#{proNum}
+	</select>
+	
+	<!-- 상품 장바구니 담기 -->
+	<insert id="insertCart" parameterType="SuitUpCartVO">
+	INSERT INTO SU_CART VALUES(#{proNum}, #{proName},#{memId},#{dtproSize}, #{dtproColor},#{cartCount}, #{proPrice}, CART_NUM_SEQUENCE.NEXTVAL, #{cateNum}, #{cateDtnum})
+	</insert>
+	
+	<!-- 장바구니 수량 변경 -->
+	<insert id="changeCart" parameterType="SuitUpCartVO">
+	UPDATE SU_CART SET CART_COUNT = #{cartCount} WHERE CART_NUM=#{cartNum}
+	</insert>
+	
+	<!-- 상품 수정 -->
+	<update id="updateProduct" parameterType="SuitUpProductVO">
+	UPDATE SU_PRO
+	<set>
+	<if test="dtproCount != null">
+	DTPRO_COUNT = DTPRO_COUNT + #{dtproCount}
+	</if>
+	</set>
+	<where>
+	<if test="#{proNum} != null">
+	PRO_NUM = #{proNum}
+	</if>
+	</where>
+	</update>
+	
+	<!-- 리뷰 불러오기 -->
+	<select id="getCommentList" parameterType="SuitUpCommentVO" resultType="SuitUpCommentVO">
+		SELECT * FROM SU_COMMENT WHERE PRO_NUM = #{proNum}
+	</select>
+	<!-- 상품 구매여부 확인 -->
+	<select id="orderCheck" parameterType="SuitUpCommentVO" resultType="Integer">
+		SELECT COUNT(*) FROM SU_ORDER WHERE PRO_NUM = #{proNum} AND MEM_ID = #{memId}
+	</select>
+	<!-- 리뷰  작성 -->
+	<insert id="insertComment" parameterType="SuitUpCommentVO">
+		INSERT INTO SU_COMMENT VALUES (#{proNum}, #{memId}, #{comTitle}, #{comContent}, SYSDATE, #{comAvg} ,COMMENT_NUM_SEQ.NEXTVAL)
+	</insert>
+	<!-- 리뷰 삭제 -->
+	<delete id="deleteComment" parameterType="SuitUpCommentVO">
+		DELETE FROM SU_COMMENT WHERE COM_SEQ = #{comSeq}
+	</delete>
+	<!-- 리뷰 수정 -->
+	<update id="updateComment" parameterType="SuitUpCommentVO">
+		UPDATE SU_COMMENT
+		SET COM_TITLE = #{comTitle},
+			COM_CONTENT = #{comContent},
+			COM_AVG = #{comAvg}
+		WHERE COM_SEQ = #{comSeq}
+	</update>
+	
+	<!-- 리뷰 평점 가져오기 -->
+	<select id="getReviewAvg" parameterType="SuitUpCommentVO" resultType="long">
+	SELECT AVG(COM_AVG) FROM SU_COMMENT WHERE PRO_NUM = #{proNum}
+	</select>
+	
+	<!-- 리뷰 갯수 가져오기 -->
+	<select id="getReviewCount" parameterType="SuitUpCommentVO" resultType="int">
+	SELECT COUNT(COM_AVG) FROM SU_COMMENT WHERE PRO_NUM = #{proNum}
+	</select>
+	
+	<!-- 리뷰 하나 불러오기 -->
+	<select id="getComment" parameterType="SuitUpCommentVO" resultType="SuitUpCommentVO">
+		SELECT * FROM SU_COMMENT WHERE COM_SEQ = #{comSeq}
+	</select>
+	
+		<!-- 회원정보 가져오기 -->
+	<select resultType="SuitUpCustomerVO" id="getMemberList">
+	SELECT * FROM SU_MEM WHERE MEM_ADMIN = 0 
+	</select>
+	
+		<!-- 주문정보 가져오기 -->
+	<select id="getAdminOrderList" resultType="SuitUpOrderVO" parameterType="SuitUpOrderVO">
+	SELECT *
+    FROM SU_ORDER
+    WHERE ORDER_STATUS = #{orderStatus}
+    ORDER BY ORDER_DATE
+	</select>
+	
+	<!-- 월별 총액 -->
+	<resultMap type="HashMap" id="monthMap">
+		<id column="sum" property="sum"/>
+		<id column="month" property="month"/>
+	</resultMap>
+	<select id="getMonthSum" resultMap="monthMap">
+	SELECT SUM((ORDER_COUNT*PRO_PRICE)/100) AS SUM,
+	TO_CHAR(order_date,'YY-MM') AS MONTH
+	FROM SU_ORDER 
+	GROUP BY TO_CHAR(order_date,'YY-MM')
+	ORDER BY TO_CHAR(order_date,'YY-MM') DESC
+	</select>
+	
+	<!-- 일별 총액 -->
+	<resultMap type="HashMap" id="dayMap">
+		<id column="sum" property="sum"/>
+		<id column="day" property="day"/>
+	</resultMap>
+	<select id="getDaySum" resultMap="dayMap">
+	SELECT SUM((ORDER_COUNT*PRO_PRICE)/100) AS SUM,
+	TO_CHAR(order_date,'YY-MM-DD') AS DAY
+	FROM SU_ORDER 
+	GROUP BY TO_CHAR(order_date,'YY-MM-DD')
+	ORDER BY TO_CHAR(order_date,'YY-MM-DD') DESC
+	</select>
+
+	<!-- 카테고리별 -->
+	<resultMap type="HashMap" id="cateMap">
+		<id column="cnt" property="cnt"/>
+		<id column="num" property="num"/>
+	</resultMap>
+	<select id="getCateSum" resultMap="cateMap">
+	SELECT COUNT(CATE_NUM) AS CNT,
+	CATE_NUM AS NUM
+	FROM SU_ORDER 
+	GROUP BY CATE_NUM
+	ORDER BY CATE_NUM
+	</select>
+
+	<!-- 주문완료에서 배송중 -->	
+	<update id="deliveryStart" parameterType="SuitUpOrderVO">
+		UPDATE SU_ORDER 
+		SET order_status = '배송중' 
+		WHERE ORDER_NUM = #{orderNum}
+	</update>
+
+	<!-- 배송중에서 배송완료 -->	
+	<update id="deliveryEnd" parameterType="SuitUpOrderVO">
+		UPDATE SU_ORDER 
+		SET order_status = '배송완료' 
+		WHERE ORDER_NUM = #{orderNum}
+	</update>
+	
+	<!-- 찜 등록 -->
+	<insert id="insertWish">
+		INSERT INTO SU_WISH VALUES(SEQ_SU_WISH.NEXTVAL, #{memId}, #{proNum})
+	</insert>
+	
+	<!-- 찜목록 불러오기 -->
+	<resultMap type="HashMap" id="wishMap">
+		<id column="PRO_IMAGE" property="proImage"/>
+		<id column="PRO_NAME" property="proName"/>
+		<id column="PRO_NUM" property="proNum"/>
+		<id column="PRO_PRICE" property="proPrice"/>
+		<id column="DTPRO_COUNT" property="dtproCount"/>
+		<id column="WISH_NUM" property="wishNum"/>
+	</resultMap>
+	<select id="getWishList" resultMap="wishMap" parameterType="String">
+		SELECT SU_WISH.*, SU_PRO.PRO_IMAGE, SU_PRO.PRO_NAME, SU_PRO.PRO_PRICE, SU_PRO.DTPRO_COUNT
+		FROM SU_WISH JOIN SU_PRO
+		ON SU_WISH.PRO_NUM = SU_PRO.PRO_NUM
+		WHERE MEM_ID=#{memId}
+	</select>
+	
+	<!-- 찜 중복 체크 -->
+	<select id="overlapWish" parameterType="SuitUpWishVO" resultType="Integer">
+		SELECT COUNT(*) FROM SU_WISH WHERE MEM_ID = #{memId} AND PRO_NUM = #{proNum}
+	</select>
+	
+	
+	<!-- 찜 삭제 -->
+	<delete id="deleteWish" parameterType="SuitUpWishVO">
+		DELETE FROM SU_WISH
+		<where>
+		<if test="wishNum != '' or wishNum != 0">AND WISH_NUM = #{wishNum}</if>
+		<if test="memId != null">AND MEM_ID = #{memId}</if>
+		<if test="proNum != '' or proNum != 0">AND PRO_NUM = #{proNum}</if>
+		</where>
+	</delete>
+	
+	<!-- 상품명 검색 -->
+	<select id="searchProductList" parameterType="SuitUpProductVO" resultType="SuitUpProductVO">
+		SELECT * FROM SU_PRO WHERE PRO_NAME LIKE '%${proName}%'
+	</select>
+	
+	<!-- 비밀번호 리셋  -->
+	<update id="userPwdReset" parameterType="SuitUpCustomerVO">
+	UPDATE SU_MEM SET MEM_PASS= #{memPass}
+	WHERE MEM_ID = #{memId} AND MEM_NAME=#{memName}
+	</update>
+
+	<!-- 비밀번호 변경  -->
+	<update id="pwdModifyOk" parameterType="SuitUpCustomerVO">
+	UPDATE SU_MEM SET MEM_PASS= #{memPass}
+	WHERE MEM_ID = #{memId} 
+	</update>
+
+	<!-- 회원탈퇴 -->
+	<delete id="myDelete" parameterType="SuitUpCustomerVO">
+	DELETE FROM SU_MEM
+	WHERE MEM_ID= #{memId}
+	</delete>
+
+	<!-- 비밀번호 일치하는지 -->
+	<select id="userPassCheck" parameterType="SuitUpCustomerVO" resultType="SuitUpCustomerVO">
+		SELECT * FROM SU_MEM WHERE MEM_ID= #{memId} AND MEM_PASS = #{memPass}
+	</select>
+	
+</mapper>
